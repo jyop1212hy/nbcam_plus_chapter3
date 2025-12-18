@@ -1,8 +1,14 @@
 spring:
+  cache:
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=10s
+  # 최대 100개 캐시 유지, 10초 후 만료
+  # 이것 이외에도 정말 다양한 TTL & Eviction Policy 있으니 다양한 옵션을 알고 싶으면
+  # 공식 문서를 참고해주세요!
   datasource:
     url: jdbc:mysql://localhost:3306/nbcam
     username: root
-    password: 1234
+    password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true

@@ -2,19 +2,26 @@ package org.example.plus.domain.post.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.plus.common.entity.Post;
 import org.example.plus.common.entity.User;
 import org.example.plus.domain.post.model.dto.PostDto;
 import org.example.plus.domain.post.model.dto.PostSummaryDto;
+import org.example.plus.domain.post.model.request.UpdatePostRequest;
 import org.example.plus.domain.post.repository.PostRepository;
 import org.example.plus.domain.user.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class PostService {
 
     private final PostRepository postRepository;
@@ -59,6 +66,37 @@ public class PostService {
 
         List<PostSummaryDto> result = postRepository.findPostSummary(username);
         return result;
+    }
+
+    // 1단계 : postId 기준으로 캐시에 값이 있는지 없는지 확인
+    // 2단계 : 값이 있으면 리턴
+    // 4단계 : 가져온 값을 캐시에 저장
+    @Cacheable(value = "postCache", key = "'id:' + #postId")
+    public PostDto getPostById(Long postId) {
+
+        log.info("postId : {} DB 직접 조회", postId);
+        // 3단계 : 값이 없으면 디비 조회
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()-> new IllegalArgumentException("등록된 포스트가 없습니다."));
+        return PostDto.from(post);
+
+    }
+
+
+    @CachePut(value = "postCache", key = "'id:' + #postId")
+    public PostDto updatePostById(Long postId, UpdatePostRequest request) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(()->new IllegalArgumentException("등록된 포스트가 없습니다."));
+                post.update(request);
+        postRepository.save(post);
+
+        return PostDto.from(post);
+    }
+
+    @CacheEvict(value = "postCache", key = "'id:' + #postId")
+    public void deletePostById(Long postId){
+        postRepository.deleteById(postId);
     }
 }
 

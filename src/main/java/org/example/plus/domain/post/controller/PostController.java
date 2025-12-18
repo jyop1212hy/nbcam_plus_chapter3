@@ -1,20 +1,17 @@
 package org.example.plus.domain.post.controller;
 
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.example.plus.domain.post.model.dto.PostDto;
 import org.example.plus.domain.post.model.dto.PostSummaryDto;
 import org.example.plus.domain.post.model.request.CreatePostRequest;
+import org.example.plus.domain.post.model.request.UpdatePostRequest;
 import org.example.plus.domain.post.service.PostService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,4 +37,24 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostSummaryListByUsername(username));
     }
 
+    // postId 기준으로 post를 조회하는 API를 생성할 것이다.
+    // postId 기반으로 검색을 했을 떄 캐시에 값이 있으면 바로 리턴
+    // 캐시에 값이 없으면 DB 조회 후 캐시에 저장
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDto> getPostById(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPostById(postId));
+    }
+
+    @PutMapping("/{postId}")
+    ResponseEntity<PostDto> updatePostById(@PathVariable Long postId,
+                                           @RequestBody UpdatePostRequest request
+    ) {
+        return ResponseEntity.ok(postService.updatePostById(postId,request));
+    }
+
+    @DeleteMapping("/{postId}")
+    ResponseEntity<PostDto> deletePostById(@PathVariable Long postId) {
+        postService.deletePostById(postId);
+        return ResponseEntity.ok().build();
+    }
 }
