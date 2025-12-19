@@ -1,4 +1,8 @@
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
   cache:
     caffeine:
       spec: maximumSize=100,expireAfterWrite=10s

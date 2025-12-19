@@ -39,5 +39,4 @@ public class Post {
         this.content = request.getContent();
     }
 
-
 }

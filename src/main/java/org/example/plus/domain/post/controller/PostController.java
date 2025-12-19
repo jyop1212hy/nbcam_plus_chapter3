@@ -1,17 +1,17 @@
 package org.example.plus.domain.post.controller;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.example.plus.domain.post.model.dto.PostDto;
-import org.example.plus.domain.post.model.dto.PostSummaryDto;
 import org.example.plus.domain.post.model.request.CreatePostRequest;
 import org.example.plus.domain.post.model.request.UpdatePostRequest;
+import org.example.plus.domain.post.repository.PostRepository;
 import org.example.plus.domain.post.service.PostService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,42 +19,63 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
+    private final PostRepository postRepository;
 
     @PostMapping
     public ResponseEntity<PostDto> createPost(@AuthenticationPrincipal User user, @RequestBody CreatePostRequest request) {
         return ResponseEntity.ok(postService.creatPost(user.getUsername(), request.getContent()));
     }
 
-    @GetMapping("/user/{username}")
-    public ResponseEntity<List<PostDto>> getPostListByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(postService.getPostListByUsername(username));
-    }
+//    @GetMapping("/user/{username}")
+//    public ResponseEntity<List<PostDto>> getPostListByUsername(@PathVariable String username) {
+//        return ResponseEntity.ok(postService.getPostListByUsername(username));
+//    }
+//
+//
+//    //특정 사용자가 작성한 게시글에 달린 댓글의 갯수를 구하는 기능을 만들어주세요.
+//    @GetMapping("/user/{username}/detail")
+//    public ResponseEntity<List<PostSummaryDto>> getPostListDetailByUsername(@PathVariable String username) {
+//        return ResponseEntity.ok(postService.getPostSummaryListByUsername(username));
+//    }
+//
+//    // postId 기준으로 post를 조회하는 API를 생성할 것이다.
+//    // postId 기반으로 검색을 했을 떄 캐시에 값이 있으면 바로 리턴
+//    // 캐시에 값이 없으면 DB 조회 후 캐시에 저장
+//    @GetMapping("/{postId}")
+//    public ResponseEntity<PostDto> getPostById(@PathVariable Long postId) {
+//        return ResponseEntity.ok(postService.getPostById(postId));
+//    }
+//
+//    @PutMapping("/{postId}")
+//    ResponseEntity<PostDto> updatePostById(@PathVariable Long postId,
+//                                           @RequestBody UpdatePostRequest request
+//    ) {
+//        return ResponseEntity.ok(postService.updatePostById(postId,request));
+//    }
+//
+//    @DeleteMapping("/{postId}")
+//    ResponseEntity<PostDto> deletePostById(@PathVariable Long postId) {
+//        postService.deletePostById(postId);
+//        return ResponseEntity.ok().build();
+//    }
 
-
-    //특정 사용자가 작성한 게시글에 달린 댓글의 갯수를 구하는 기능을 만들어주세요.
-    @GetMapping("/user/{username}/detail")
-    public ResponseEntity<List<PostSummaryDto>> getPostListDetailByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(postService.getPostSummaryListByUsername(username));
-    }
-
-    // postId 기준으로 post를 조회하는 API를 생성할 것이다.
-    // postId 기반으로 검색을 했을 떄 캐시에 값이 있으면 바로 리턴
-    // 캐시에 값이 없으면 DB 조회 후 캐시에 저장
+    // 게시글 조회 ID 기반으로 캐시가 있으면 캐시 그대로 사용 없으면 디비 조회 후 캐시에 데이터 생성
     @GetMapping("/{postId}")
     public ResponseEntity<PostDto> getPostById(@PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostById(postId));
     }
 
+    //게시글 수정시 캐시도 삭제
     @PutMapping("/{postId}")
-    ResponseEntity<PostDto> updatePostById(@PathVariable Long postId,
-                                           @RequestBody UpdatePostRequest request
+    public ResponseEntity<PostDto> updatePostById(@PathVariable Long postId,
+                                                  @RequestBody UpdatePostRequest request
     ) {
-        return ResponseEntity.ok(postService.updatePostById(postId,request));
+        return ResponseEntity.ok(postService.updatePostById(postId, request));
     }
 
-    @DeleteMapping("/{postId}")
-    ResponseEntity<PostDto> deletePostById(@PathVariable Long postId) {
-        postService.deletePostById(postId);
-        return ResponseEntity.ok().build();
+    //인기 게시글 조회
+    @GetMapping("/popular")
+    public ResponseEntity<List<PostDto>> getPopularPostList(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(postService.getTopPostList(limit));
     }
 }
